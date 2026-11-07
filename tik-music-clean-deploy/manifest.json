@@ -1,0 +1,17 @@
+{
+  "name": "TikTok Music Clean",
+  "short_name": "TikTokMusic",
+  "description": "Nghe nhạc TikTok sạch không quảng cáo, không TikTok Shop, tích hợp Dolby Atmos DSP",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#09090d",
+  "theme_color": "#09090d",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='42' fill='%230b0b12'/><circle cx='96' cy='96' r='62' fill='none' stroke='%23fe2c55' stroke-width='10'/><path d='M82 68v56l46-28z' fill='%2325f4ee'/></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    }
+  ]
+}
