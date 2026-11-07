@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: tik-music
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node server.js
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: RENDER
+        value: "true"
+      - key: NODE_OPTIONS
+        value: "--max-old-space-size=384"

@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#09090d" />
+  <title>TikTok Music Clean — Nghe Nhạc TikTok Không Quảng Cáo & Dolby Atmos</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- Toast thông báo trạng thái -->
+  <div id="statusToast" class="status-toast" role="status" aria-live="polite">Sẵn sàng phát nhạc sạch</div>
+
+  <!-- Lớp phủ nền khi mở thanh bên trên điện thoại -->
+  <div id="sidebarBackdrop" class="sidebar-backdrop"></div>
+
+  <div class="app-shell">
+    <!-- ====================================================================
+         CỘT TRÁI: TÌM KIẾM, MENU, THẺ TAG & THƯ VIỆN YÊU THÍCH / ĐÃ LƯU
+         ==================================================================== -->
+    <aside id="sidebarLeft" class="sidebar-left" aria-label="Menu và Tìm kiếm">
+      <div class="brand-header">
+        <div class="brand-logo">
+          TikTok<span class="thin">Music</span>
+        </div>
+        <div class="header-badges">
+          <div class="shield-badge" title="Số quảng cáo & TikTok Shop đã chặn">
+            <span>🛡️</span>
+            <span id="blockedAdsBadge">142</span>
+          </div>
+          <button type="button" id="btnCloseLeftDrawer" class="drawer-close-btn" aria-label="Đóng menu">✕</button>
+        </div>
+      </div>
+
+      <!-- Ô tìm kiếm hỗ trợ đầy đủ cảm ứng trên điện thoại & phím Enter/Search -->
+      <form id="searchForm" class="search-form" action="javascript:void(0);">
+        <span class="search-icon">🔍</span>
+        <input
+          type="search"
+          id="searchInput"
+          class="search-input"
+          placeholder="Tìm bài nhạc, #tag hoặc @kênh"
+          enterkeyhint="search"
+          autocomplete="off"
+        />
+        <button type="submit" id="searchBtn" class="search-submit-btn">Tìm</button>
+      </form>
+
+      <!-- Danh mục điều hướng -->
+      <nav class="nav-menu">
+        <button type="button" class="nav-item active" data-nav="feed">
+          <span class="nav-item-left"><span>🏠</span><span>Đề xuất (Đang phát)</span></span>
+        </button>
+        <button type="button" class="nav-item" data-nav="channel">
+          <span class="nav-item-left"><span>👤</span><span>Xem kênh đang chọn</span></span>
+          <span id="channelCountBadge" class="nav-count">0</span>
+        </button>
+        <button type="button" class="nav-item" data-nav="shuffle">
+          <span class="nav-item-left"><span>🧭</span><span>Khám phá (Trộn nhạc)</span></span>
+        </button>
+        <button type="button" class="nav-item" data-nav="saved">
+          <span class="nav-item-left"><span>🔖</span><span>Phần lưu nhạc</span></span>
+          <span id="savedCountBadge" class="nav-count">0</span>
+        </button>
+        <button type="button" class="nav-item" data-nav="liked">
+          <span class="nav-item-left"><span>❤️</span><span>Bài hát yêu thích</span></span>
+          <span id="likedCountBadge" class="nav-count">0</span>
+        </button>
+        <button type="button" class="nav-item" data-nav="history">
+          <span class="nav-item-left"><span>🕒</span><span>Lịch sử đã nghe</span></span>
+        </button>
+      </nav>
+
+      <!-- Thẻ tag kiếm nhạc -->
+      <div class="tags-section">
+        <div class="section-header-row">
+          <span class="section-label">Thẻ tag kiếm nhạc</span>
+          <button type="button" id="btnToggleAddTag" class="add-tag-btn">+ Thêm tag</button>
+        </div>
+        <div id="addTagBox" class="add-tag-inline">
+          <input type="text" id="newTagInput" class="add-tag-input" placeholder="Nhập #tag mới..." />
+          <button type="button" id="btnSaveNewTag" class="add-tag-save">Lưu</button>
+        </div>
+        <div id="tagsCloud" class="tags-cloud"></div>
+      </div>
+
+      <!-- Thư viện nhanh bên dưới -->
+      <div class="sidebar-library">
+        <div class="lib-tabs">
+          <button type="button" id="tabBtnLiked" class="lib-tab-btn active">❤️ Yêu thích (<span id="tabLikedNum">0</span>)</button>
+          <button type="button" id="tabBtnSaved" class="lib-tab-btn">🔖 Đã lưu (<span id="tabSavedNum">0</span>)</button>
+        </div>
+        <div id="sidebarLibList" class="lib-list"></div>
+      </div>
+    </aside>
+
+    <!-- ====================================================================
+         CỘT GIỮA: SÂN KHẤU PHÁT VIDEO NHẠC (TỰ ĐỘNG 9:16 & 16:9 XOAY NGANG)
+         ==================================================================== -->
+    <main id="playerStage" class="player-stage video-16-9">
+      <canvas id="ambientCanvas" width="160" height="90"></canvas>
+
+      <!-- Thanh điều khiển phía trên -->
+      <header class="top-stage-bar">
+        <div class="top-left-group">
+          <button type="button" id="btnOpenLeftDrawer" class="icon-glass-btn" aria-label="Mở menu tìm kiếm">☰</button>
+          <button type="button" id="activeTagPill" class="active-tag-pill" title="Bấm để tìm kiếm nhanh">
+            <span class="live-dot"></span>
+            <span id="activeTagText">#nhacchill</span>
+          </button>
+        </div>
+        <div class="top-right-group">
+          <button type="button" id="btnPrevTrack" class="icon-glass-btn" title="Bài trước">⏮</button>
+          <button type="button" id="btnNextTrack" class="icon-glass-btn" title="Bài tiếp theo">⏭</button>
+          <button type="button" id="btnOpenRightDrawer" class="icon-glass-btn" title="Dolby Atmos DSP & Danh sách phát">•••</button>
+        </div>
+      </header>
+
+      <!-- Nút thoát chế độ phóng to xoay ngang (Chỉ hiện khi đang phóng to 16:9) -->
+      <button type="button" id="btnExitLandscape" class="exit-landscape-btn">
+        <span>✕</span>
+        <span>Thu nhỏ về dọc</span>
+      </button>
+
+      <!-- Khung hiển thị Video & Sân khấu Lời bài hát dự phòng -->
+      <div id="videoViewport" class="video-viewport">
+        <video
+          id="mainVideo"
+          class="main-video"
+          playsinline
+          webkit-playsinline
+          preload="auto"
+          crossorigin="anonymous"
+        ></video>
+
+        <div id="visualLyricStage" class="visual-lyric-stage">
+          <div class="lyric-card">
+            <div id="lyricLinesBox" class="lyric-lines"></div>
+          </div>
+        </div>
+
+        <!-- Nút gợi ý phóng to xoay ngang (CHỈ hiện với video 16:9, tự động ẩn với video 9:16) -->
+        <button type="button" id="floatingLandscapeBtn" class="floating-landscape-btn">
+          <span>⛶</span>
+          <span>Video 16:9 • Bấm để phóng to & xoay ngang</span>
+        </button>
+      </div>
+
+      <!-- Cột nút tương tác bên phải -->
+      <div class="action-rail">
+        <div id="railAvatarBtn" class="rail-avatar-wrap" title="Xem kênh này">
+          <img id="railAvatarImg" class="rail-avatar" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='50' fill='%23fe2c55'/></svg>" alt="Avatar kênh" />
+          <span class="rail-follow-badge">↗</span>
+        </div>
+
+        <button type="button" id="btnLikeTrack" class="rail-btn">
+          <span class="rail-icon-circle">🤍</span>
+          <span id="likeLabelText" class="rail-label">Yêu thích</span>
+        </button>
+
+        <button type="button" id="btnSaveTrack" class="rail-btn">
+          <span class="rail-icon-circle">📑</span>
+          <span class="rail-label">Lưu nhạc</span>
+        </button>
+
+        <button type="button" id="btnSameMusic" class="rail-btn">
+          <span class="rail-icon-circle">🎵</span>
+          <span class="rail-label">Cùng nhạc</span>
+        </button>
+
+        <div id="vinylDisc" class="vinyl-disc playing" title="Đang phát nhạc sạch"></div>
+      </div>
+
+      <!-- Thông tin bài hát phía dưới -->
+      <div class="video-info-overlay">
+        <div class="info-author-row">
+          <span id="infoAuthor" class="info-author">@itslowkey._y</span>
+          <span id="infoViews" class="info-views">• 3.2M lượt xem</span>
+          <span id="aspectBadge" class="aspect-badge">16:9 MV</span>
+        </div>
+        <div class="info-desc-row">
+          <p id="infoDesc" class="info-desc">Tình Mình Lạ Kì | Lil Zpoet</p>
+          <button type="button" id="btnToggleDesc" class="more-desc-btn">thêm</button>
+        </div>
+        <div class="info-music-row">
+          <span>🎵</span>
+          <span id="infoMusicTitle">Tình Mình Lạ Kì — Lil Zpoet</span>
+        </div>
+      </div>
+
+      <!-- Thanh tiến trình & Nút phóng to 16:9 ở góc dưới phải -->
+      <footer class="bottom-player-bar">
+        <button type="button" id="btnPlayPause" class="play-toggle-btn" aria-label="Phát hoặc Tạm dừng">⏸</button>
+        <span id="currentTimeText" class="time-label">0:00</span>
+        <div class="seek-slider-wrap">
+          <input type="range" id="seekSlider" class="seek-slider" min="0" max="100" step="0.1" value="0" aria-label="Tua nhạc" />
+        </div>
+        <span id="durationTimeText" class="time-label">1:00</span>
+        <!-- Nút phóng to & xoay ngang: Chỉ hiển thị khi video là 16:9, tự động ẩn khi video là 9:16 -->
+        <button
+          type="button"
+          id="btnFullscreenRotate"
+          class="btn-fullscreen-rotate"
+          title="Phóng to & xoay ngang màn hình (Dành cho video 16:9)"
+          aria-label="Phóng to và xoay ngang"
+        >⛶</button>
+      </footer>
+    </main>
+
+    <!-- ====================================================================
+         CỘT PHẢI: DOLBY ATMOS DSP, CHẾ ĐỘ PHÁT & DANH SÁCH BÀI TIẾP THEO
+         ==================================================================== -->
+    <aside id="sidebarRight" class="sidebar-right" aria-label="Cấu hình âm thanh và Danh sách phát">
+      <div class="brand-header">
+        <div class="panel-title">🎧 Dolby Atmos & Web Audio DSP</div>
+        <button type="button" id="btnCloseRightDrawer" class="drawer-close-btn" aria-label="Đóng bảng DSP">✕</button>
+      </div>
+
+      <div class="panel-card">
+        <div class="panel-title-row">
+          <span class="section-label">Chế độ âm thanh (6 Presets)</span>
+          <span id="activeDspLabel" class="aspect-badge">Dolby Atmos 3D</span>
+        </div>
+        <div id="dspPresetGrid" class="dsp-grid">
+          <button type="button" class="dsp-btn" data-dsp="flat">🎵 Chuẩn (Original)</button>
+          <button type="button" class="dsp-btn active" data-dsp="atmos">🌌 Dolby Atmos 3D</button>
+          <button type="button" class="dsp-btn" data-dsp="bass">🔊 Siêu Trầm (Bass)</button>
+          <button type="button" class="dsp-btn" data-dsp="lofi">☕ Lofi Chill Ấm</button>
+          <button type="button" class="dsp-btn" data-dsp="vocal">🎤 Vocal Acoustic</button>
+          <button type="button" class="dsp-btn" data-dsp="club">⚡ Vũ Trường Remix</button>
+        </div>
+      </div>
+
+      <div class="panel-card">
+        <div class="panel-title-row">
+          <span class="section-label">Chế độ chuyển bài & Cào dữ liệu</span>
+        </div>
+        <div class="mode-row">
+          <button type="button" id="btnModeAutoNext" class="mode-pill active">🔁 Tự chuyển bài</button>
+          <button type="button" id="btnModeLoop" class="mode-pill">🔂 Lặp 1 bài</button>
+          <button type="button" id="btnRefreshScrape" class="mode-pill">⚡ Cào nhạc mới</button>
+        </div>
+      </div>
+
+      <div class="panel-card" style="flex: 1; display: flex; flex-direction: column; min-height: 220px;">
+        <div class="panel-title-row">
+          <span class="panel-title">📋 Danh sách đang phát (<span id="queueTotalCount">0</span>)</span>
+        </div>
+        <div id="upNextQueue" class="queue-list"></div>
+      </div>
+    </aside>
+  </div>
+
+  <script src="catalog_bundle.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
